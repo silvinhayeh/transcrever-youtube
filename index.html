@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcrição YouTube</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f9fc;
+            margin: 0;
+            padding: 15px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #resultado {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Transcrição YouTube</h1>
+    <input type="text" id="videoUrl" placeholder="Cole o link do vídeo aqui">
+    <br>
+    <button onclick="buscarTranscricao()">Buscar Transcrição</button>
+    <button onclick="baixarTXT()">Baixar TXT</button>
+    <button onclick="baixarDOC()">Baixar DOC</button>
+
+    <div id="resultado"></div>
+
+    <script>
+        async function buscarTranscricao() {
+            const url = document.getElementById("videoUrl").value;
+            if (!url.includes("youtube.com") && !url.includes("youtu.be")) {
+                alert("Insira um link válido do YouTube!");
+                return;
+            }
+
+            document.getElementById("resultado").innerHTML = "Buscando...";
+            try {
+                const resposta = await fetch(`/api/transcrever?url=${encodeURIComponent(url)}`);
+                const data = await resposta.json();
+                if (data.error) {
+                    document.getElementById("resultado").innerHTML = "Erro: " + data.error;
+                } else {
+                    document.getElementById("resultado").innerHTML = data.texto.replace(/\n/g, "<br>");
+                }
+            } catch (erro) {
+                document.getElementById("resultado").innerHTML = "Erro ao buscar transcrição.";
+            }
+        }
+
+        function baixarTXT() {
+            const texto = document.getElementById("resultado").innerText;
+            const blob = new Blob([texto], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "transcricao.txt";
+            link.click();
+        }
+
+        function baixarDOC() {
+            const texto = document.getElementById("resultado").innerText;
+            const blob = new Blob([texto], { type: "application/msword" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "transcricao.doc";
+            link.click();
+        }
+    </script>
+</body>
+</html>
